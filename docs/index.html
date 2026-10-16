@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نیکان شاپ | Nikan Shop</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#fff8fb;color:#382432}
+header{background:#963f6c;color:white;text-align:center;padding:25px 12px}
+nav{background:white;padding:15px;text-align:center}
+nav a{color:#963f6c;text-decoration:none;margin:0 8px}
+.hero{text-align:center;padding:35px 15px;background:#f8dce9}
+main{max-width:1100px;margin:auto;padding:20px}
+#search{width:100%;padding:13px;border:1px solid #e3b8cc;border-radius:9px;font-size:16px}
+.categories{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+button{font-family:inherit;cursor:pointer;border:0;border-radius:8px;padding:11px 14px;background:#963f6c;color:white}
+.categories button{background:#f0d9e4;color:#702448}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+.product{background:white;border:1px solid #f0dce6;border-radius:13px;padding:15px;text-align:center}
+.photo{font-size:55px;background:#fff0f6;border-radius:10px;padding:20px}
+.price{color:#963f6c;font-weight:bold}
+.product button{width:100%}
+.cart{background:white;border:1px solid #f0dce6;border-radius:12px;padding:18px;margin-top:30px}
+.cart li{margin:12px 0}
+footer{background:#702448;color:white;text-align:center;padding:25px;margin-top:35px}
+.small{font-size:13px;line-height:1.9}
+</style>
+</head>
+<body>
+<header>
+<h1>🌸 نیکان شاپ | Nikan Shop</h1>
+<p>زیبایی و مراقبت، با انتخابی مطمئن</p>
+</header>
+<nav>
+<a href="#home">خانه</a>
+<a href="#products">محصولات</a>
+<a href="#cart">سبد خرید</a>
+<a href="#contact">تماس با ما</a>
+</nav>
+<section class="hero" id="home">
+<h2>به نیکان شاپ خوش آمدید 💗</h2>
+<p>محصولات آرایشی و بهداشتی مورد علاقه‌ات را پیدا کن.</p>
+</section>
+<main>
+<input id="search" type="search" placeholder="🔎 جست‌وجوی محصول...">
+<h2 id="products" style="text-align:center">محصولات فروشگاه</h2>
+<div class="categories">
+<button onclick="filter('همه')">همه محصولات</button>
+<button onclick="filter('آرایشی')">آرایشی</button>
+<button onclick="filter('پوست')">مراقبت پوست</button>
+<button onclick="filter('بهداشتی')">بهداشتی</button>
+</div>
+<div class="products" id="productList"></div>
+<section class="cart" id="cart">
+<h2>🛍️ سبد خرید</h2>
+<ul id="cartItems"><li>سبد خرید خالی است.</li></ul>
+<h3>مجموع: <span id="total">۰</span> تومان</h3>
+<button onclick="checkout()">ثبت سفارش در واتساپ</button>
+<p class="small">این نسخه نمایشی است. پرداخت آنلاین بانکی هنوز فعال نیست.</p>
+</section>
+<section id="contact">
+<h2>تماس با ما</h2>
+<p>شماره تماس فروشگاه را پس از راه‌اندازی وارد کنید.</p>
+</section>
+</main>
+<footer>
+<strong>Nikan Shop | نیکان شاپ</strong>
+<p>فروشگاه آنلاین لوازم آرایشی و بهداشتی</p>
+</footer>
+<script>
+const products=[
+{id:1,name:"رژ لب",category:"آرایشی",price:250000,emoji:"💄"},
+{id:2,name:"ریمل",category:"آرایشی",price:320000,emoji:"🖤"},
+{id:3,name:"کرم مرطوب‌کننده",category:"پوست",price:280000,emoji:"🧴"},
+{id:4,name:"ضد آفتاب",category:"پوست",price:450000,emoji:"☀️"},
+{id:5,name:"شامپو",category:"بهداشتی",price:180000,emoji:"🧴"},
+{id:6,name:"ماسک صورت",category:"پوست",price:150000,emoji:"🌸"},
+{id:7,name:"پنکک",category:"آرایشی",price:390000,emoji:"💗"},
+{id:8,name:"کرم دست",category:"بهداشتی",price:120000,emoji:"🤍"}
+];
+let cart=[];
+let category="همه";
+const money=n=>n.toLocaleString("fa-IR");
+function renderProducts(){
+const q=document.getElementById("search").value.trim().toLowerCase();
+const list=products.filter(p=>(category==="همه"||p.category===category)&&p.name.toLowerCase().includes(q));
+document.getElementById("productList").innerHTML=list.length?list.map(p=>`
+<div class="product">
+<div class="photo">${p.emoji}</div>
+<h3>${p.name}</h3>
+<p>${p.category}</p>
+<p class="price">${money(p.price)} تومان</p>
+<button onclick="add(${p.id})">افزودن به سبد خرید</button>
+</div>`).join(""):"<p>محصولی پیدا نشد.</p>";
+}
+function filter(c){category=c;renderProducts();}
+function add(id){
+const p=products.find(x=>x.id===id);
+const item=cart.find(x=>x.id===id);
+if(item)item.quantity++;else cart.push({...p,quantity:1});
+renderCart();
+}
+function removeItem(id){cart=cart.filter(x=>x.id!==id);renderCart();}
+function renderCart(){
+const list=document.getElementById("cartItems");
+if(!cart.length)list.innerHTML="<li>سبد خرید خالی است.</li>";
+else list.innerHTML=cart.map(p=>`<li>${p.name} × ${money(p.quantity)} — ${money(p.price*p.quantity)} تومان <button onclick="removeItem(${p.id})">حذف</button></li>`).join("");
+document.getElementById("total").textContent=money(cart.reduce((s,p)=>s+p.price*p.quantity,0));
+}
+function checkout(){
+if(!cart.length){alert("ابتدا محصولی انتخاب کنید.");return;}
+const phone="989121234567";
+const total=cart.reduce((s,p)=>s+p.price*p.quantity,0);
+const message="سلام، سفارش از نیکان شاپ:\n"+cart.map(p=>p.name+" × "+p.quantity+" = "+money(p.price*p.quantity)+" تومان").join("\n")+"\nمجموع: "+money(total)+" تومان";
+window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank");
+}
+document.getElementById("search").addEventListener("input",renderProducts);
+renderProducts();
+renderCart();
+</script>
+</body>
+</html>
