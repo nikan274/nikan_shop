@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Sticker | پیکسل استیکر</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#fff5f9;color:#333}
+header{background:#ec65a2;color:white;text-align:center;padding:24px 12px}
+header h1{margin:0;font-size:30px}
+nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:12px;background:white}
+button,a.btn{border:0;border-radius:10px;padding:11px 16px;background:#e95798;color:white;font:inherit;text-decoration:none;cursor:pointer}
+.admin-button{background:#444}
+main{max-width:950px;margin:20px auto;padding:15px}
+h2{color:#d8498c}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.card,.panel{background:white;padding:18px;border-radius:16px;box-shadow:0 3px 14px #0000000b}
+.card{text-align:center}
+.emoji{font-size:55px}
+.price{color:#d8498c;font-weight:bold}
+label{display:block;margin-top:12px;font-weight:bold}
+input,select,textarea{width:100%;padding:11px;margin-top:5px;border:1px solid #ddd;border-radius:8px;font:inherit}
+.panel{margin-top:22px}
+.notice{background:#fff0f6;padding:12px;border-radius:10px;line-height:1.9}
+.hidden{display:none}
+footer{text-align:center;padding:22px;color:#777}
+.small{font-size:13px;color:#666;line-height:1.8}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌸 Pixel Sticker</h1>
+  <p>دنیای رنگارنگ استیکرها</p>
+</header>
+
+<nav>
+  <a class="btn" href="#products">دیدن محصولات</a>
+  <a class="btn" href="#order">ثبت سفارش</a>
+  <button class="admin-button" onclick="adminLogin()">🔐 ورود مدیر</button>
+</nav>
+
+<main>
+  <section id="products">
+    <h2>🛍️ محصولات فروشگاه</h2>
+    <div class="products" id="productList"></div>
+  </section>
+
+  <section class="panel" id="order">
+    <h2>ثبت سفارش</h2>
+    <form id="orderForm">
+      <label for="product">انتخاب محصول</label>
+      <select id="product" required></select>
+
+      <label for="quantity">تعداد</label>
+      <input id="quantity" type="number" min="1" value="1" required>
+
+      <label for="customer">نام مشتری</label>
+      <input id="customer" maxlength="80" required placeholder="نام شما">
+
+      <label for="phone">شماره تماس مشتری</label>
+      <input id="phone" type="tel" maxlength="20" required placeholder="شماره تماس شما">
+
+      <label for="address">نشانی تحویل</label>
+      <textarea id="address" maxlength="500" rows="3" required placeholder="نشانی تحویل سفارش"></textarea>
+
+      <button type="submit">آماده‌سازی سفارش</button>
+    </form>
+
+    <div id="orderResult" class="hidden">
+      <h3>متن سفارش</h3>
+      <textarea id="orderText" rows="9" readonly></textarea>
+      <button type="button" onclick="copyOrder()">کپی متن سفارش</button>
+      <p class="notice">
+        برای هماهنگی سفارش با فروشگاه تماس بگیرید:
+        <br>
+        <a href="tel:09038449014">📞 09038449014</a>
+        <br>
+        <a href="sms:09038449014">ارسال پیامک</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="adminPanel">
+    <h2>🔐 پنل مدیر</h2>
+    <p class="notice">نسخه آزمایشی: تغییرات موجودی فقط در همین مرورگر ذخیره می‌شوند.</p>
+
+    <h3>افزودن یا ویرایش محصول</h3>
+    <label for="editName">نام محصول</label>
+    <input id="editName" placeholder="مثلاً استیکر فانتزی">
+
+    <label for="editPrice">قیمت هر محصول (تومان)</label>
+    <input id="editPrice" type="number" min="0" placeholder="مثلاً 50000">
+
+    <label for="editStock">موجودی</label>
+    <input id="editStock" type="number" min="0" placeholder="مثلاً 20">
+
+    <button onclick="saveProduct()">ذخیره محصول</button>
+
+    <h3>فهرست محصولات و موجودی</h3>
+    <div id="inventoryList"></div>
+
+    <h3>سفارش‌های این مرورگر</h3>
+    <div id="ordersList"></div>
+
+    <button class="admin-button" onclick="adminLogout()">خروج از پنل</button>
+  </section>
+
+  <p class="small">
+    این نسخه برای آزمایش است. سفارش‌ها به سرور ارسال نمی‌شوند.
+    برای فروش واقعی، ذخیره امن سفارش‌ها و مدیریت مشترک موجودی نیاز به سرویس پشتیبان دارد.
+  </p>
+</main>
+
+<footer>Pixel Sticker ©</footer>
+
+<script>
+const defaultProducts = [
+  {id:1,name:"استیکر فانتزی",price:50000,stock:20,emoji:"🌈"},
+  {id:2,name:"استیکر کیوت",price:45000,stock:15,emoji:"🐻"},
+  {id:3,name:"استیکر گل",price:40000,stock:12,emoji:"🌷"},
+  {id:4,name:"استیکر کارتونی",price:55000,stock:10,emoji:"🐱"}
+];
+
+function load(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+let products = load("pixelProducts", defaultProducts);
+let orders = load("pixelOrders", []);
+
+function saveData() {
+  try {
+    localStorage.setItem("pixelProducts", JSON.stringify(products));
+    localStorage.setItem("pixelOrders", JSON.stringify(orders));
+    return true;
+  } catch (e) {
+    alert("ذخیره‌سازی در این مرورگر ممکن نیست.");
+    return false;
+  }
+}
+
+function money(value) {
+  return Number(value).toLocaleString("fa-IR") + " تومان";
+}
+
+function renderProducts() {
+  const list = document.getElementById("productList");
+  const select = document.getElementById("product");
+  list.replaceChildren();
+  select.replaceChildren();
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "یک محصول انتخاب کنید";
+  select.appendChild(placeholder);
+
+  products.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const emoji = document.createElement("div");
+    emoji.className = "emoji";
+    emoji.textContent = p.emoji || "✨";
+
+    const title = document.createElement("h3");
+    title.textContent = p.name;
+
+    const price = document.createElement("p");
+    price.className = "price";
+    price.textContent = money(p.price);
+
+    const stock = document.createElement("p");
+    stock.textContent = p.stock > 0
+      ? "موجودی: " + p.stock + " عدد"
+      : "ناموجود";
+
+    card.append(emoji, title, price, stock);
+    list.appendChild(card);
+
+    const option = document.createElement("option");
+    option.value = String(p.id);
+    option.textContent = p.name + " — " + money(p.price);
+    option.disabled = p.stock < 1;
+    select.appendChild(option);
+  });
+}
+
+function adminLogin() {
+  const password = prompt("رمز آزمایشی مدیر را وارد کن:");
+  if (password === null) return;
+
+  if (password === "456") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    renderInventory();
+    document.getElementById("adminPanel").scrollIntoView({behavior:"smooth"});
+  } else {
+    alert("رمز اشتباه است.");
+  }
+}
+
+function adminLogout() {
+  document.getElementById("adminPanel").classList.add("hidden");
+}
+
+function saveProduct() {
+  const name = document.getElementById("editName").value.trim();
+  const price = document.getElementById("editPrice").value;
+  const stock = document.getElementById("editStock").value;
+
+  if (!name || price === "" || stock === "" ||
+      !Number.isFinite(Number(price)) || Number(price) < 0 ||
+      !Number.isInteger(Number(stock)) || Number(stock) < 0) {
+    alert("نام، قیمت و موجودی معتبر وارد کن.");
+    return;
+  }
+
+  const existing = products.find(p => p.name === name);
+
+  if (existing) {
+    existing.price = Number(price);
+    existing.stock = Number(stock);
+  } else {
+    products.push({
+      id: Date.now(),
+      name,
+      price: Number(price),
+      stock: Number(stock),
+      emoji: "✨"
+    });
+  }
+
+  if (saveData()) {
+    renderProducts();
+    renderInventory();
+    document.getElementById("editName").value = "";
+    document.getElementById("editPrice").value = "";
+    document.getElementById("editStock").value = "";
+    alert("محصول در این مرورگر ذخیره شد.");
+  }
+}
+
+function renderInventory() {
+  const list = document.getElementById("inventoryList");
+  list.replaceChildren();
+
+  products.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "notice";
+    row.style.marginTop = "8px";
+
+    const info = document.createElement("p");
+    info.textContent = p.name + " | " + money(p.price) +
+      " | موجودی: " + p.stock;
+
+    const remove = document.createElement("button");
+    remove.textContent = "حذف محصول";
+    remove.onclick = function() {
+      if (confirm("این محصول حذف شود؟")) {
+        products = products.filter(item => item.id !== p.id);
+        saveData();
+        renderProducts();
+        renderInventory();
+      }
+    };
+
+    row.append(info, remove);
+    list.appendChild(row);
+  });
+
+  const ordersList = document.getElementById("ordersList");
+  ordersList.replaceChildren();
+
+  if (orders.length === 0) {
+    ordersList.textContent = "سفارشی در این مرورگر ثبت نشده است.";
+    return;
+  }
+
+  orders.forEach(order => {
+    const item = document.createElement("div");
+    item.className = "notice";
+    item.style.marginTop = "8px";
+    item.textContent = order;
+    ordersList.appendChild(item);
+  });
+}
+
+document.getElementById("orderForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const id = Number(document.getElementById("product").value);
+  const product = products.find(p => p.id === id);
+  const quantity = Number(document.getElementById("quantity").value);
+  const customer = document.getElementById("customer").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
+
+  if (!product || !Number.isInteger(quantity) || quantity < 1 ||
+      quantity > product.stock) {
+    alert("محصول را انتخاب کن و تعداد را با موجودی هماهنگ کن.");
+    return;
+  }
+
+  const text =
+    "سفارش Pixel Sticker\n" +
+    "محصول: " + product.name + "\n" +
+    "تعداد: " + quantity + "\n" +
+    "قیمت تقریبی: " + money(product.price * quantity) + "\n" +
+    "نام: " + customer + "\n" +
+    "تماس: " + phone + "\n" +
+    "نشانی: " + address + "\n" +
+    "وضعیت: در انتظار تأیید فروشگاه";
+
+  document.getElementById("orderText").value = text;
+  document.getElementById("orderResult").classList.remove("hidden");
+  document.getElementById("orderResult").scrollIntoView({behavior:"smooth"});
+});
+
+function copyOrder() {
+  const field = document.getElementById("orderText");
+  field.focus();
+  field.select();
+
+  try {
+    const successful = document.execCommand("copy");
+    alert(successful
+      ? "متن سفارش کپی شد. برای تماس با فروشگاه از شماره بالای صفحه استفاده کن."
+      : "متن انتخاب شد؛ آن را کپی کن.");
+  } catch (e) {
+    alert("متن سفارش را انتخاب و کپی کن.");
+  }
+}
+
+renderProducts();
+</script>
+</body>
+</html>
+
