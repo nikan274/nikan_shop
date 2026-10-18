@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Sticker | فروشگاه برچسب</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#fff7fb;color:#292238}
+header{background:white;padding:15px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px #ddd}
+.logo{font-size:22px;font-weight:bold;color:#ff4f91}
+button{border:0;border-radius:10px;padding:11px 14px;background:#ff4f91;color:white;cursor:pointer;font-family:inherit}
+.secondary{background:#f4e7ef;color:#503348}
+main{max-width:1050px;margin:auto;padding:20px}
+.hero{background:linear-gradient(135deg,#ffe1ed,#e9e5ff);padding:24px;border-radius:20px}
+input,textarea{width:100%;padding:12px;border:1px solid #eed9e5;border-radius:10px;margin:6px 0 12px;font-family:inherit}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.card,.section{background:white;border:1px solid #f0dce7;border-radius:15px;padding:13px;margin:15px 0}
+.card{padding:0;overflow:hidden}
+.product-img{width:100%;height:180px;object-fit:cover;background:#ffe7f0}
+.info{padding:12px}
+.price{color:#d72d77;font-weight:bold}
+.muted{font-size:13px;color:#786b78;line-height:1.8}
+.hidden{display:none}
+.line{border-bottom:1px solid #eee;padding:12px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.thumb{width:65px;height:65px;object-fit:cover;border-radius:9px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">💖 Pixel Sticker</div>
+  <div class="row">
+    <button class="secondary" onclick="go('products')">محصولات</button>
+    <button onclick="go('cart')">🛒 سبد خرید (<span id="count">0</span>)</button>
+    <button class="secondary" onclick="login()">🔐 ورود مدیر</button>
+  </div>
+</header>
+<main>
+  <section class="hero">
+    <h1>به فروشگاه Pixel Sticker خوش آمدی! ✨</h1>
+    <p>برچسب‌های دوست‌داشتنی را انتخاب کن و سفارش بده.</p>
+    <p class="muted">برای سفارش، محصول را به سبد خرید اضافه کن و اطلاعاتت را وارد کن.</p>
+  </section>
+
+  <section id="products">
+    <h2>محصولات</h2>
+    <input id="search" placeholder="🔎 جست‌وجوی محصول..." oninput="renderProducts()">
+    <div id="productList" class="products"></div>
+  </section>
+
+  <section id="cart" class="section">
+    <h2>🛒 سبد خرید</h2>
+    <div id="cartList">سبد خرید خالی است.</div>
+    <h3>مجموع: <span id="total">۰</span> تومان</h3>
+    <h3>ثبت سفارش</h3>
+    <form id="orderForm">
+      <label>نام شما</label>
+      <input id="customerName" required placeholder="نام مشتری">
+      <label>شماره تماس شما</label>
+      <input id="customerPhone" required placeholder="شماره تماس">
+      <label>نشانی یا توضیح سفارش</label>
+      <textarea id="customerAddress" placeholder="نشانی یا توضیح"></textarea>
+      <button type="submit">آماده کردن سفارش پیامکی</button>
+    </form>
+    <div id="orderResult" class="muted"></div>
+    <p><a href="tel:09038449014">📞 تماس با فروشگاه</a></p>
+    <p><a href="sms:09038449014">✉️ پیامک به فروشگاه</a></p>
+  </section>
+
+  <section id="admin" class="section hidden">
+    <div class="row"><h2>⚙️ اتاق مدیریت</h2><button class="secondary" onclick="logout()">خروج</button></div>
+    <p class="muted">می‌توانی محصول جدید اضافه کنی، عکس انتخاب کنی، قیمت و موجودی را تغییر دهی یا محصول را حذف کنی.</p>
+    <h3 id="formTitle">افزودن محصول جدید</h3>
+    <form id="productForm">
+      <input id="editId" type="hidden">
+      <label>نام محصول</label><input id="pName" required placeholder="نام محصول">
+      <div class="row">
+        <div><label>قیمت (تومان)</label><input id="pPrice" type="number" min="0" required placeholder="قیمت"></div>
+        <div><label>موجودی</label><input id="pStock" type="number" min="0" required placeholder="تعداد"></div>
+      </div>
+      <label>عکس محصول از کامپیوتر</label><input id="pImage" type="file" accept="image/*">
+      <label>یا نشانی آنلاین عکس</label><input id="pImageUrl" type="url" placeholder="https://...">
+      <label>توضیحات</label><textarea id="pDesc" placeholder="توضیح محصول"></textarea>
+      <button type="submit">ذخیره محصول</button>
+      <button type="button" class="secondary" onclick="resetForm()">پاک کردن فرم</button>
+    </form>
+    <h3>مدیریت محصولات</h3><div id="adminProducts"></div>
+    <h3>سفارش‌های ذخیره‌شده در همین مرورگر</h3><div id="adminOrders" class="muted"></div>
+    <p class="muted">هشدار: این نسخه آزمایشی است. اطلاعات فقط در مرورگر فعلی ذخیره می‌شوند و پنل مدیر امن نیست.</p>
+  </section>
+</main>
+<footer class="muted" style="text-align:center;padding:20px">Pixel Sticker 💖</footer>
+
+<script>
+const PASSWORD="Pix#5829";
+const KEY="pixelProductsV3", ORDERKEY="pixelOrdersV3";
+let products=read(KEY,[
+{id:"a1",name:"برچسب فانتزی",price:50000,stock:10,image:"",imageUrl:"",desc:"برچسب رنگارنگ و زیبا"},
+{id:"a2",name:"برچسب قلبی",price:35000,stock:8,image:"",imageUrl:"",desc:"مناسب دفتر و هدیه"},
+{id:"a3",name:"پک برچسب کیوت",price:75000,stock:5,image:"",imageUrl:"",desc:"یک پک دوست‌داشتنی"}
+]);
+let orders=read(ORDERKEY,[]),cart={},adminOpen=false;
+function read(k,f){try{return JSON.parse(localStorage.getItem(k))||f}catch(e){return f}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(products));localStorage.setItem(ORDERKEY,JSON.stringify(orders))}catch(e){alert("فضای مرورگر پر شده است؛ عکس کوچک‌تری انتخاب کن.")}}
+function safe(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function money(n){return Number(n||0).toLocaleString("fa-IR")+" تومان"}
+function placeholder(name){return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="#ffe1ed"/><text x="50%" y="50%" text-anchor="middle" font-size="30" fill="#80385b">💖 '+safe(name)+'</text></svg>')}
+function img(p){return p.image||p.imageUrl||placeholder(p.name)}
+function go(id){document.getElementById(id).scrollIntoView({behavior:"smooth"})}
+function renderProducts(){
+ const q=document.getElementById("search").value.toLowerCase();
+ let list=products.filter(p=>(p.name+" "+(p.desc||"")).toLowerCase().includes(q));
+ document.getElementById("productList").innerHTML=list.length?list.map(p=>`<article class="card"><img class="product-img" src="${safe(img(p))}" alt="${safe(p.name)}"><div class="info"><h3>${safe(p.name)}</h3><p class="price">${money(p.price)}</p><p class="muted">موجودی: ${p.stock}</p><p class="muted">${safe(p.desc||"")}</p><button onclick="add('${p.id}')" ${p.stock<=0?"disabled":""}>افزودن به سبد</button></div></article>`).join(""):"محصولی پیدا نشد.";
+}
+function add(id){let p=products.find(x=>x.id===id);if(!p)return;let n=cart[id]||0;if(n>=p.stock){alert("موجودی کافی نیست.");return}cart[id]=n+1;renderCart()}
+function qty(id,d){let p=products.find(x=>x.id===id);if(!p)return;let n=(cart[id]||0)+d;if(n<=0)delete cart[id];else cart[id]=Math.min(n,p.stock);renderCart()}
+function renderCart(){
+ let entries=Object.entries(cart).filter(([id,n])=>n>0&&products.some(p=>p.id===id)),total=0;
+ document.getElementById("count").textContent=entries.reduce((s,[,n])=>s+n,0);
+ document.getElementById("cartList").innerHTML=entries.length?entries.map(([id,n])=>{let p=products.find(x=>x.id===id);total+=p.price*n;return `<div class="line"><b>${safe(p.name)}</b> — ${money(p.price)}<div class="row"><button class="secondary" onclick="qty('${id}',-1)">−</button><span>${n}</span><button class="secondary" onclick="qty('${id}',1)" ${n>=p.stock?"disabled":""}>+</button><button onclick="delete cart['${id}'];renderCart()">حذف</button></div></div>`}).join(""):"سبد خرید خالی است.";
+ document.getElementById("total").textContent=money(total);
+}
+function login(){if(adminOpen){go("admin");return}let p=prompt("رمز مدیر را وارد کن:");if(p===null)return;if(p!==PASSWORD){alert("رمز اشتباه است.");return}adminOpen=true;document.getElementById("admin").classList.remove("hidden");renderAdmin();go("admin")}
+function logout(){adminOpen=false;document.getElementById("admin").classList.add("hidden")}
+function resetForm(){document.getElementById("productForm").reset();document.getElementById("editId").value="";document.getElementById("formTitle").textContent="افزودن محصول جدید"}
+function edit(id){let p=products.find(x=>x.id===id);if(!p)return;document.getElementById("editId").value=id;document.getElementById("pName").value=p.name;document.getElementById("pPrice").value=p.price;document.getElementById("pStock").value=p.stock;document.getElementById("pImageUrl").value=p.imageUrl||"";document.getElementById("pDesc").value=p.desc||"";document.getElementById("formTitle").textContent="ویرایش محصول";go("admin")}
+function removeProduct(id){if(!confirm("این محصول حذف شود؟"))return;products=products.filter(p=>p.id!==id);delete cart[id];save();renderAdmin();renderProducts();renderCart()}
+function renderAdmin(){
+ document.getElementById("adminProducts").innerHTML=products.map(p=>`<div class="line row"><img class="thumb" src="${safe(img(p))}" alt=""><div style="flex:3"><b>${safe(p.name)}</b><p class="muted">${money(p.price)} | موجودی ${p.stock}</p></div><button class="secondary" onclick="edit('${p.id}')">ویرایش</button><button onclick="removeProduct('${p.id}')">حذف</button></div>`).join("");
+ document.getElementById("adminOrders").innerHTML=orders.length?orders.slice().reverse().map(o=>`<div class="line"><b>سفارش ${safe(o.id)}</b><p>${safe(o.name)} — ${safe(o.phone)}</p><p>${safe(o.items)}</p><p>${money(o.total)}</p></div>`).join(""):"هنوز سفارشی ذخیره نشده است.";
+}
+document.getElementById("productForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!adminOpen)return;
+ let id=document.getElementById("editId").value,old=products.find(p=>p.id===id),image=old?.image||"",file=document.getElementById("pImage").files[0];
+ if(file){if(file.size>600000){alert("عکس را کوچک کن؛ حجم باید کمتر از 600 کیلوبایت باشد.");return}image=await new Promise(resolve=>{let r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(file)})}
+ let p={id:id||"p"+Date.now(),name:document.getElementById("pName").value.trim(),price:Number(document.getElementById("pPrice").value),stock:Number(document.getElementById("pStock").value),image,imageUrl:document.getElementById("pImageUrl").value.trim(),desc:document.getElementById("pDesc").value.trim()};
+ if(old)products=products.map(x=>x.id===id?p:x);else products.push(p);
+ save();resetForm();renderAdmin();renderProducts();renderCart();alert("محصول ذخیره شد. فقط در همین مرورگر.");
+});
+document.getElementById("orderForm").addEventListener("submit",e=>{
+ e.preventDefault();let entries=Object.entries(cart).filter(([id,n])=>n>0&&products.some(p=>p.id===id));if(!entries.length){alert("سبد خرید خالی است.");return}
+ let total=0,items=entries.map(([id,n])=>{let p=products.find(x=>x.id===id);total+=p.price*n;return p.name+" × "+n}).join("، ");
+ let order={id:String(Date.now()).slice(-6),name:document.getElementById("customerName").value,phone:document.getElementById("customerPhone").value,address:document.getElementById("customerAddress").value,items,total};
+ orders.push(order);save();renderAdmin();
+ let msg=`سلام، سفارش Pixel Sticker\nنام: ${order.name}\nتلفن: ${order.phone}\nمحصولات: ${items}\nمجموع: ${total} تومان\nتوضیحات: ${order.address}`;
+ document.getElementById("orderResult").innerHTML="سفارش در همین مرورگر ذخیره شد. برای ارسال آن به فروشگاه، پیامک را باز و ارسال کن.<br><br><button onclick='sendSms("+JSON.stringify(msg)+")'>ارسال پیامک سفارش</button> <button class='secondary' onclick='copyText("+JSON.stringify(msg)+")'>کپی متن سفارش</button>";
+});
+function sendSms(msg){location.href="sms:09038449014?body="+encodeURIComponent(msg)}
+function copyText(msg){if(navigator.clipboard)navigator.clipboard.writeText(msg).then(()=>alert("متن کپی شد."));else prompt("متن را کپی کن",msg)}
+renderProducts();renderCart();
+</script>
+</body>
+</html>
+
